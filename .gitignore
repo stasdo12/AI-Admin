@@ -1,0 +1,11 @@
+dist/*.zip
+.DS_Store
+dev/.data/
+node_modules/
+# docker bind-mount points for the shared core (filled only by build/build.sh)
+packages/oc4/system/
+packages/oc3/upload/system/
+dev/ui/out/
+dev/ui/package*.json
+dev/package*.json
+__pycache__/

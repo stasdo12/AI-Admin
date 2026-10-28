@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+    <name>AI Admin: AI connection works in maintenance and with SEO Pro redirects</name>
+    <code>mcp_server_maintenance</code>
+    <version>1.0.1</version>
+    <author>AI Admin</author>
+    <link></link>
+    <file path="catalog/controller/startup/maintenance.php">
+        <operation error="skip">
+            <search><![CDATA[$this->user = new Cart\User($this->registry);]]></search>
+            <add position="before"><![CDATA[			// AI Admin: the AI connection (MCP, OAuth, upload links) keeps working, the storefront stays closed
+			if (strpos($route, 'extension/module/mcp_server') === 0) {
+				return;
+			}
+
+			// its short addresses (/mcp, /mcp-oauth-token, /.well-known/..., the secret one) are SEO URLs, resolved only after this check;
+			// every part must be one of them - /mcp/<a page keyword> would open that page of the closed store
+			if (!empty($this->request->get['_route_'])) {
+				$mcp_parts = array_values(array_unique(array_filter(explode('/', (string)$this->request->get['_route_']), 'strlen')));
+				$mcp_in = implode(', ', array_map(function ($p) { return "'" . $this->db->escape($p) . "'"; }, $mcp_parts));
+				$mcp_alias = $mcp_parts ? $this->db->query("SELECT COUNT(DISTINCT `keyword`) AS n FROM `" . DB_PREFIX . "seo_url` WHERE `keyword` IN (" . $mcp_in . ") AND `query` LIKE 'extension/module/mcp_server/%'") : null;
+
+				if ($mcp_alias && (int)$mcp_alias->row['n'] === count($mcp_parts)) {
+					return;
+				}
+			}
+]]></add>
+        </operation>
+    </file>
+    <file path="system/library/seopro.php">
+        <operation error="skip">
+            <search><![CDATA[if (!empty($this->request->post))]]></search>
+            <add position="before"><![CDATA[        // AI Admin: the AI sends JSON (no form fields), so SEO Pro took it for a page view and redirected /mcp to /mcp/ or
+        // /mcp.html - the client repeats a redirect as GET and the connection breaks (HTTP 405)
+        if (isset($this->request->get['route']) && strpos((string)$this->request->get['route'], 'extension/module/mcp_server') === 0)
+            return;
+
+]]></add>
+        </operation>
+    </file>
+</modification>

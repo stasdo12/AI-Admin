@@ -1,0 +1,7 @@
+{
+  "name": "AI Admin (AI assistant connection)",
+  "description": "Model Context Protocol server inside OpenCart: connect Claude, ChatGPT, Claude Code or any MCP client directly to the store (products, orders, customers, reports, SQL) OAuth sign-in, access by admin section and field, preview and rollback of every change.",
+  "version": "0.9.0",
+  "author": "opencart-mcp-server",
+  "link": "https://github.com/"
+}

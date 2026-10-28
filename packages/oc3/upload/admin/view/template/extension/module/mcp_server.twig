@@ -1,0 +1,680 @@
+{{ header }}{{ column_left }}
+{# Generated from packages/shared/admin/mcp_server.twig by build/gen_admin.py - edit the source, not this file. #}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="pull-right">
+{% if licensed %}<button type="submit" form="form-module" aria-label="{{ ui_save|e('html_attr') }}" class="btn btn-primary"><i class="fa fa-save"></i></button>{% endif %}
+        <a href="{{ cancel }}" aria-label="{{ ui_back|e('html_attr') }}" class="btn btn-default"><i class="fa fa-reply"></i></a></div>
+      <h1>{% if free %}<span class="mcp-brand" role="img" aria-label="AI Admin"></span>{% endif %}<b class="mcp-h1-brand">AI Admin</b> <span class="mcp-h1-sub">{{ ui_heading_sub }}</span></h1>
+      <ul class="breadcrumb">{% for breadcrumb in breadcrumbs %}<li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>{% endfor %}</ul>
+    </div>
+  </div>
+  <div class="container-fluid mcp-ui{% if free %} mcp-free{% endif %}">
+{% if not licensed %}
+    <section class="mcp-license" id="mcp-license">
+      <div class="mcp-license-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="mcp-license-ic"><i class="fa fa-key"></i></div><span class="mcp-langs" role="group" aria-label="{{ ui_language|e('html_attr') }}"><a href="#" data-mcp-lang="uk-ua" class="{% if module_lang == 'uk-ua' %}on{% endif %}">UK</a><a href="#" data-mcp-lang="en-gb" class="{% if module_lang == 'en-gb' %}on{% endif %}">EN</a></span></div>
+        <h3>{{ ui_license_title }}</h3>
+        <label for="mcp-license-key" class="lbl">{{ ui_license_key }}</label>
+        <textarea id="mcp-license-key" class="form-control mono" rows="4" placeholder="{% if not free %}OCMCP2.…{% endif %}" spellcheck="false" autocomplete="off"></textarea>
+        {% if license_reason and license_info %}<div class="mcp-err" style="display:block">{{ license_reason|replace({'%s': license_domain}) }}</div>{% endif %}
+        {% if not crypto_ok %}<div class="mcp-err" style="display:block">{{ ui_license_no_crypto }}</div>{% endif %}
+        <div class="mcp-err" id="mcp-license-error"></div>
+        <button type="button" class="mcp-btn p" id="mcp-license-save"><i class="fa fa-check"></i> {{ ui_license_activate }}</button>
+      </div>
+    </section>
+{% else %}
+    {% if error_warning %}<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-triangle"></i> {{ error_warning }}<button type="button" class="close" data-dismiss="alert">&times;</button></div>{% endif %}
+    {% if error_acl %}<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-triangle"></i> {{ error_acl }}<button type="button" class="close" data-dismiss="alert">&times;</button></div>{% endif %}
+    {% if success %}<div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> {{ success }}<button type="button" class="close" data-dismiss="alert">&times;</button></div>{% endif %}
+    <form action="{{ action }}" method="post" id="form-module" enctype="multipart/form-data">
+      <input type="hidden" name="module_mcp_server_acl_json" id="input-acl-json" value=""/>
+      <input type="hidden" name="module_mcp_server_rev" id="input-rev" value="{{ module_mcp_server_rev }}"/>
+      <input type="hidden" name="module_mcp_server_acl_custom_json" id="input-acl-custom-json" value=""/>
+      <span class="mcp-langs" role="group" aria-label="{{ ui_language|e('html_attr') }}"><a href="#" data-mcp-lang="uk-ua" class="{% if module_lang == 'uk-ua' %}on{% endif %}">UK</a><a href="#" data-mcp-lang="en-gb" class="{% if module_lang == 'en-gb' %}on{% endif %}">EN</a></span>
+      <nav class="mcp-tabs" id="mcp-main-tabs">
+        <a href="#tab-overview" class="active"><i class="fa fa-tachometer"></i> {{ ui_tab_overview }}</a>
+        <a href="#tab-access"><i class="fa fa-shield"></i> {{ ui_tab_access }}</a>
+        <a href="#tab-connections"><i class="fa fa-plug"></i> {{ ui_tab_connections }}</a>
+        <a href="#tab-history"><i class="fa fa-history"></i> {{ ui_tab_history }}</a>
+        <a href="#tab-prompts"><i class="fa fa-magic"></i> {{ ui_tab_prompts }}</a>
+        <a href="#tab-general"><i class="fa fa-sliders"></i> {{ ui_tab_settings }}</a>
+      </nav>
+{% if support_tg %}      <a class="mcp-support" href="{{ support_tg }}" target="_blank" rel="noopener noreferrer"><i class="fa fa-paper-plane"></i> {{ ui_support }}</a>{% endif %}
+
+
+      {# ================================================================ overview #}
+      <div class="mcp-pane active" id="tab-overview">
+        <section class="mcp-status{% if module_mcp_server_status %} on{% endif %}" id="ov-status">
+          <div class="st-head">
+            <label class="mcp-switch lg"><input type="hidden" name="module_mcp_server_status" value="0"/><input type="checkbox" name="module_mcp_server_status" value="1" id="input-status" aria-label="{{ ui_status_toggle|e('html_attr') }}"{% if module_mcp_server_status %} checked{% endif %}/><i></i></label>
+            <div class="st-text">
+              <h3><span class="st-on">{{ ui_status_on }}</span><span class="st-off">{{ ui_status_off }}</span></h3>
+              <p><span class="st-on">{{ ui_status_on_sub }}</span><span class="st-off">{{ ui_status_off_sub }}</span></p>
+            </div>
+          </div>
+          <div class="st-url">
+            <label for="mcp-endpoint">{{ ui_mcp_address }}</label>
+            <div class="mcp-row">
+              <input type="text" value="{{ mcp_url }}" class="form-control mono" readonly id="mcp-endpoint" data-base="{{ mcp_base|e('html_attr') }}"/>
+              <input type="hidden" name="module_mcp_server_path" id="input-path" value="{{ module_mcp_server_path|e('html_attr') }}"/>
+              <button type="button" class="mcp-btn" data-mcp-copy="#mcp-endpoint"><i class="fa fa-copy"></i> {{ ui_copy }}</button>
+            </div>
+            <div class="mcp-help">{{ help_mcp_address_overview }}</div>
+          </div>
+          <ul class="mcp-checks">
+            <li class="{% if https %}ok{% else %}off{% endif %}"><i class="fa fa-circle"></i><b>HTTPS</b><span>{% if https %}{{ ui_check_https_ok }}{% else %}{{ ui_check_https_bad }}{% endif %}</span></li>
+            <li class="ok"><i class="fa fa-circle"></i><b>{{ ui_check_short }}</b><span>{% if pretty_urls %}{{ ui_check_short_ok }}{% else %}{{ ui_check_short_bad }}{% endif %}</span></li>
+            <li class="{% if ai_connected %}ok{% else %}off{% endif %}"><i class="fa fa-circle"></i><b>{{ ui_check_signin }}</b><span>{% if ai_connected %}{{ ui_check_signin_ok }}{% else %}{{ ui_check_signin_bad }}{% endif %}</span></li>
+            <li id="ov-check-access"><i class="fa fa-circle"></i><b>{{ ui_check_access }}</b><span></span></li>
+          </ul>
+          <div class="mcp-note w" id="ov-addr-problem" style="display:none"><i class="fa fa-exclamation-triangle"></i><span><b>{{ ui_address_problem }}.</b> <span class="t"></span></span></div>
+        </section>
+
+        <div class="mcp-kpis" id="ov-kpis"></div>
+
+        <div class="mcp-cols2">
+          <section class="mcp-card">
+            <div class="mcp-card-hd"><h4>{{ ui_activity_title }}</h4><a href="#tab-history" class="mcp-link" data-goto="#tab-history">{{ ui_open_history }} <i class="fa fa-chevron-right"></i></a></div>
+            <div class="mcp-bars" id="ov-chart"></div>
+            <div class="mcp-legend-mini"><span><i class="sw calls"></i>{{ ui_chart_calls }}</span><span><i class="sw prob"></i>{{ ui_chart_problems }}</span></div>
+            <div class="mcp-toplist" id="ov-top"></div>
+          </section>
+          <section class="mcp-card">
+            <div class="mcp-card-hd"><h4>{{ ui_allowed_title }}</h4><a href="#tab-access" class="mcp-link" data-goto="#tab-access">{{ ui_change_access }} <i class="fa fa-chevron-right"></i></a></div>
+            <div class="mcp-seclist" id="ov-access"></div>
+          </section>
+        </div>
+
+
+        <section class="mcp-card">
+          <div class="mcp-card-hd"><h4>{{ ui_recent_title }}</h4><a href="#tab-history" class="mcp-link" data-goto="#tab-history">{{ ui_all_changes }} <i class="fa fa-chevron-right"></i></a></div>
+          <div id="ov-changes"><div class="mcp-empty">…</div></div>
+        </section>
+      </div>
+
+      {# ================================================================ access #}
+      <div class="mcp-pane" id="tab-access">
+        <section class="mcp-card">
+          <h4>{{ ui_access_title }}</h4>
+          <p class="mcp-sub acc-sub">{{ ui_access_sub }}</p>
+          <div class="mcp-toolbar">
+            <span class="mcp-presets"><span class="lbl">{{ ui_quick_choice }}</span>
+              <button type="button" class="mcp-btn" data-acl-preset="read">{{ text_preset_read }}</button>
+              <button type="button" class="mcp-btn" data-acl-preset="write">{{ text_preset_write }}</button>
+              <button type="button" class="mcp-btn" data-acl-preset="all">{{ text_preset_all }}</button>
+            <button type="button" class="mcp-btn" id="acl-custom" disabled>{{ text_preset_custom }}</button>
+            <button type="button" class="mcp-btn" data-acl-preset="none"><i class="fa fa-lock"></i> {{ text_preset_none }}</button></span>
+          </div>
+          <details class="acc-help"><summary><span class="hs"><i class="fa fa-info-circle"></i> {{ ui_levels_title }}</span><i class="fa fa-chevron-down chev"></i></summary><div class="in">
+            <p class="mcp-sub">{{ ui_help_intro }}</p>
+            <div class="hp-top">
+              <div class="hp-box hp-levels"><b class="hp-h">{{ ui_help_levels }}</b><table>
+                {% for lv in ['read', 'write', 'full', 'custom', 'none'] %}
+                <tr><th><span class="mcp-dot lv-{{ lv }}"></span>{% if lv == 'custom' %}{{ ui_level_custom }}{% else %}{{ attribute(_context, 'text_level_' ~ lv) }}{% endif %}</th><td>{{ attribute(_context, 'ui_help_lv_' ~ lv) }}</td></tr>
+                {% endfor %}
+              </table></div>
+              <div class="hp-box hp-del"><div class="hp-del-h"><i class="fa fa-trash"></i><b>{{ ui_help_del_title }}</b></div><p>{{ ui_help_del_lead }}</p><ul><li>{{ ui_help_del_ex1 }}</li><li>{{ ui_help_del_ex2 }}</li></ul><p class="ed"><i class="fa fa-exclamation-circle"></i><span>{{ ui_help_del_edit }}</span></p></div>
+            </div>
+            <div class="hp-dict"><i class="fa fa-database"></i><div><b>{{ ui_help_dict_title }}</b><span>{{ ui_help_dict }}</span></div></div>
+            <b class="hp-h hp-mh">{{ ui_help_marks }}</b>
+            <div class="hp-box hp-marks"><table>
+              <tr><th><span class="am-req">*</span> {{ ui_help_mark_req_t }}</th><td>{{ ui_help_mark_req }}</td></tr>
+              <tr><th><span class="mcp-badge pii">{{ text_badge_personal }}</span></th><td>{{ ui_help_mark_pii }}</td></tr>
+              <tr><th><span class="mcp-badge money">{{ text_badge_money }}</span></th><td>{{ ui_help_mark_money }}</td></tr>
+              <tr><th><span class="mcp-badge sec">{{ text_badge_masked }}</span></th><td>{{ ui_help_mark_masked }}</td></tr>
+              <tr><th><span class="mcp-badge tech">{{ text_badge_no_edit }}</span></th><td>{{ ui_help_mark_no_edit }}</td></tr>
+            </table></div>
+            <p class="hp-foot">{{ ui_help_foot }}</p>
+          </div></details>
+        </section>
+        <div class="acc-navrow">{# the sections and the search in one row, the search on the right #}
+          <nav class="mcp-tabs mcp-sectabs" id="acc-sections"></nav>
+              <div class="mcp-search acc-search"><i class="fa fa-search"></i><input type="text" id="acc-search" class="form-control" placeholder="{{ text_access_search }}"/></div>
+        </div>
+        <div id="acc-locked-note" class="mcp-note w" style="display:none"><i class="fa fa-lock"></i><span>{{ text_section_locked_note }}</span></div>
+        <div class="mcp-acclist" id="acc-body"></div>
+      </div>
+
+      {# ================================================================ connections #}
+      <div class="mcp-pane" id="tab-connections">
+        <section class="mcp-card">
+          <div class="mcp-card-hd"><h4>{{ ui_connected_title }}</h4>{% if active_connections %}<button type="button" class="mcp-btn s d mcp-revoke" data-all="1"><i class="fa fa-ban"></i> {{ text_revoke_all }}</button>{% endif %}</div>
+          <p class="mcp-sub">{{ text_connections_intro }}</p>
+          {% if connections|length %}
+          <div class="mcp-conns">
+            {% set shown = 0 %}
+            {% for c in connections %}
+            {% if c.status == 'active' %}{% set shown = shown + 1 %}{% endif %}
+            <div class="mcp-conn{% if c.status != 'active' %} dim inactive{% elseif shown > 10 %} more{% endif %}">
+              <div class="who"><b class="cn-name" data-conn="{{ c.conn|e('html_attr') }}" data-app="{{ c.client_name|e('html_attr') }}">{{ (c.label ?: c.client_name)|escape }}</b><button type="button" class="cn-rename" data-conn="{{ c.conn|e('html_attr') }}" aria-label="{{ ui_conn_rename|e('html_attr') }}"><i class="fa fa-pencil"></i></button><span class="cn-sub"><span class="cn-app"{% if not c.label %} hidden{% endif %}>{{ c.client_name|escape }} · </span>{{ c.username|escape }} · {{ c.ip|escape }} · {{ c.date_added|slice(0, 16) }}</span></div>
+              {% if c.status == 'active' %}
+              <div class="when"><span>{{ ui_conn_last }}</span><b>{{ c.last_used ? c.last_used|slice(0, 16) : '—' }}</b></div>
+              <div class="when"><span>{{ ui_conn_expires }}</span><b>{% if c.unlimited %}{{ ui_conn_forever }}{% else %}{{ c.expires|slice(0, 16) }}{% endif %}</b></div>
+              <button type="button" class="mcp-btn s d mcp-revoke" data-token-id="{{ c.token_id }}">{{ text_revoke }}</button>
+              {% else %}
+              <div class="when"><span>{{ c.status == 'expired' ? text_expired : text_revoked }}</span><b>{{ c.expires|slice(0, 16) }}</b></div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% if not active_connections %}<div class="mcp-empty" style="padding:14px">{{ ui_no_active }}</div>{% endif %}
+          <div class="mcp-conns-more">
+          {% if active_connections > 10 %}<button type="button" class="mcp-btn s" id="mcp-show-more">{{ ui_show_more|replace({'%d': active_connections - 10}) }}</button>{% endif %}
+          {% if inactive_connections %}<button type="button" class="mcp-btn s ghost" id="mcp-toggle-inactive" data-show="{{ ui_show_inactive|replace({'%d': inactive_connections})|e('html_attr') }}" data-hide="{{ ui_hide_inactive|e('html_attr') }}">{{ ui_show_inactive|replace({'%d': inactive_connections}) }}</button>{% endif %}
+          </div>
+          {% else %}
+          <div class="mcp-empty"><i class="fa fa-plug"></i>{{ text_no_connections }} <a href="#mcp-connect-card" data-scroll="#mcp-connect-card">{{ ui_connect_first }}</a></div>
+          {% endif %}
+        </section>
+
+        <section class="mcp-card" id="mcp-connect-card">
+          <h4>{{ ui_connect_title }}</h4>
+          <p class="mcp-sub">{{ ui_connect_sub }}</p>
+          {% if not https %}<div class="mcp-note w"><i class="fa fa-exclamation-triangle"></i><span>{{ text_https_warning }}</span></div>{% endif %}
+          <div class="mcp-clients">
+            {% for client in connect_clients %}
+            <div class="mcp-client">
+              <div class="hd"><div class="mcp-logo {{ client.id }}">{{ client.name|first }}</div><div><b>{{ client.name }}</b><span>{{ attribute(_context, 'text_client_' ~ client.id ~ '_sub') }}</span></div></div>
+              <button type="button" class="mcp-btn p mcp-connect" data-url="{{ client.url }}"{% if not client.prefilled %} data-copy="{{ mcp_url }}"{% endif %}><i class="fa fa-external-link"></i> {{ ui_connect_button }}</button>
+              <details class="steps"><summary>{{ ui_how_to_connect }}</summary><div><div class="mcp-paste"><button type="button" class="mcp-btn s" data-copy-text="{{ connector_name|e('html_attr') }}"><i class="fa fa-copy"></i> {{ ui_copy_name }}</button><button type="button" class="mcp-btn s" data-copy-text="{{ mcp_url }}"><i class="fa fa-copy"></i> {{ ui_copy_url }}</button></div>{{ client.steps|replace({'%s': mcp_url, '%name%': connector_name|e})|raw }}</div></details>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+        <section class="mcp-card mcp-fold">
+          <details id="mcp-keys"{% if error_token or error_url_secret or error_path %} open{% endif %}>{# folded by default; a save error inside opens it #}
+            <summary><i class="fa fa-chevron-right mcp-chev"></i><h4>{{ ui_advanced_title }}</h4></summary>
+            <div class="in">
+            <input type="hidden" name="module_mcp_server_oauth" value="{{ module_mcp_server_oauth ? 1 : 0 }}"/>{# sign-in for Claude / ChatGPT stays as it is: the switch is no longer shown #}
+            <div class="mcp-field">
+              <label for="mcp-endpoint-conn">{{ ui_mcp_address }}</label>
+              <div>
+                <div class="mcp-row mcp-keyrow mcp-addrrow">
+                  <input type="text" value="{{ mcp_url }}" class="form-control mono" readonly id="mcp-endpoint-conn"/>
+                  {% if pretty_urls %}<button type="button" class="mcp-btn" id="mcp-path-gen"><i class="fa fa-refresh"></i> {{ text_generate }}</button>{% endif %}
+                  <button type="button" class="mcp-btn" data-mcp-copy="#mcp-endpoint-conn"><i class="fa fa-copy"></i> {{ ui_copy }}</button>
+                </div>
+                <div class="mcp-note w" id="mcp-path-note" style="display:none;margin:8px 0 0"><i class="fa fa-exclamation-triangle"></i><span>{{ ui_address_new_note }}</span></div>
+                  {% if error_path %}<div class="mcp-err" style="display:block">{{ error_path }}</div>{% endif %}
+                  </div>
+            </div>
+            <div class="mcp-field">
+              <label for="input-token">{{ entry_token }}</label>
+              <div>
+                <div class="mcp-row mcp-keyrow">
+                  <input type="password" name="module_mcp_server_token" value="" id="input-token" class="form-control mono" autocomplete="new-password" placeholder="{% if token_set %}{{ text_token_set_placeholder }}{% endif %}"/><input type="hidden" name="module_mcp_server_token_clear" id="input-token-clear" value="0"/>
+                  <button type="button" class="mcp-btn" data-mcp-toggle="#input-token" id="mcp-token-show" aria-label="{{ ui_show|e('html_attr') }}" disabled><i class="fa fa-eye"></i></button>
+                  <button type="button" class="mcp-btn" data-mcp-generate="#input-token" data-mcp-length="24"><i class="fa fa-refresh"></i> {{ text_generate }}</button>
+                  <button type="button" class="mcp-btn" id="mcp-token-copy" disabled><i class="fa fa-copy"></i> {{ ui_copy }}</button>
+                  <button type="button" class="mcp-btn d" id="mcp-token-clear"{% if not token_set %} disabled{% endif %}><i class="fa fa-trash"></i> {{ text_token_remove }}</button>
+                </div>
+                <div class="mcp-note w" id="mcp-token-new" style="display:none;margin:8px 0 0">{{ text_token_copy_now }}</div>
+                  {% if error_token %}<div class="mcp-err">{{ error_token }}</div>{% endif %}
+                  </div>
+            </div>
+            <div class="mcp-field">
+              <label for="input-url-secret">{{ entry_url_secret }}</label>
+              <div>
+                <div class="mcp-row mcp-keyrow">
+                  <input type="password" name="module_mcp_server_url_secret" value="{{ module_mcp_server_url_secret|e }}" id="input-url-secret" class="form-control mono" autocomplete="new-password" data-saved="{{ module_mcp_server_url_secret|e('html_attr') }}" data-base="{{ secret_base|e('html_attr') }}"/>
+                  <button type="button" class="mcp-btn" data-mcp-toggle="#input-url-secret" aria-label="{{ ui_show|e('html_attr') }}"><i class="fa fa-eye"></i></button>
+                  <button type="button" class="mcp-btn" data-mcp-generate="#input-url-secret" data-mcp-length="20" data-mcp-prefix="key-"><i class="fa fa-refresh"></i> {{ text_generate }}</button>
+                  <button type="button" class="mcp-btn" id="mcp-secret-copy"{% if not module_mcp_server_url_secret %} disabled{% endif %}><i class="fa fa-copy"></i> {{ ui_copy }}</button>
+                  <button type="button" class="mcp-btn d" id="mcp-secret-clear"{% if not module_mcp_server_url_secret %} disabled{% endif %}><i class="fa fa-trash"></i> {{ text_token_remove }}</button>
+                </div>
+                <div class="mcp-note w" id="mcp-secret-note" style="display:none;margin:8px 0 0"><i class="fa fa-exclamation-triangle"></i><span>{{ ui_secret_new_note }}</span></div>
+                  {% if error_url_secret %}<div class="mcp-err">{{ error_url_secret }}</div>{% endif %}
+                  </div>
+            </div>
+              </div>
+          </details>
+        </section>
+
+      </div>
+
+      {# ================================================================ history #}
+      <div class="mcp-pane" id="tab-history">
+        <div class="mcp-subnav" id="hist-nav">
+          <button type="button" data-hist="changes"{% if not free %} class="active"{% endif %}><i class="fa fa-undo"></i> {{ ui_hist_changes }}</button>
+          <button type="button" data-hist="log"{% if free %} class="active"{% endif %}><i class="fa fa-list"></i> {{ ui_hist_log }}</button>
+          <button type="button" data-hist="archives" id="hist-archives-btn" hidden><i class="fa fa-archive"></i> {{ ui_hist_archives }}</button>
+        </div>
+        <div class="mcp-hist{% if not free %} active{% endif %}" id="hist-changes">
+          <p class="mcp-sub">{{ text_changes_intro }}</p>
+          <div class="mcp-fbar" id="ch-filters">
+            <div class="f chips"><span>{{ ui_ch_show }}</span><div class="mcp-chips" id="ch-state"><button type="button" data-state="open" class="on">{{ ui_ch_state_open }} <span class="n" data-n="open"></span></button><button type="button" data-state="done">{{ ui_ch_state_done }} <span class="n" data-n="done"></span></button><button type="button" data-state="all">{{ ui_ch_state_all }} <span class="n" data-n="total"></span></button></div></div>
+            <label class="f no"><span>{{ ui_ch_no }}</span><input type="text" inputmode="numeric" class="form-control" id="ch-no" placeholder="{{ ui_ch_no_ph|e('html_attr') }}"/></label>
+            <label class="f"><span>{{ ui_ch_connection }}</span><select id="ch-client" class="form-control"><option value="">{{ ui_ch_all_connections }}</option></select></label>
+            <label class="f"><span>{{ ui_ch_period }}</span><select id="ch-period" class="form-control"><option value="">{{ ui_ch_all_time }}</option><option value="session">{{ ui_ch_session }}</option><option value="24h">{{ ui_ch_24h }}</option><option value="7d">{{ ui_ch_7d }}</option></select></label>
+            <button type="button" class="mcp-btn ghost f-reset" id="ch-reset" style="display:none"><i class="fa fa-times"></i> {{ text_filter_reset }}</button>
+            <span class="sp"></span>
+            <button type="button" class="mcp-btn s ch-sel-page" id="ch-sel-page"><i class="fa fa-check"></i> {{ ui_ch_sel_page }}</button>
+            <button type="button" class="mcp-btn s d" id="ch-rb-all" disabled><i class="fa fa-undo"></i> <span></span></button>
+          </div>
+          <div class="mcp-selbar" id="ch-selbar"><b id="ch-sel-n"></b><button type="button" class="mcp-btn s d" id="ch-rb-sel"><i class="fa fa-undo"></i> {{ ui_ch_rb_selected }}</button><button type="button" class="mcp-btn s ghost" id="ch-sel-clear">{{ ui_ch_sel_clear }}</button></div>
+          <div class="mcp-tcard">
+            <div class="mcp-scroll"><table class="mcp-table mcp-cards mcp-cht ch-fixed">
+              <colgroup><col class="c-ck"/><col class="c-no"/><col class="c-date"/><col class="c-conn"/><col class="c-what"/><col class="c-st"/><col class="c-act"/></colgroup>
+              <thead><tr><th class="ck"><input type="checkbox" class="mcp-ck" id="ch-ck-all" aria-label="{{ ui_ch_sel_page|e('html_attr') }}"/></th><th class="no">{{ ui_ch_no }}</th><th>{{ column_date }}</th><th>{{ ui_ch_connection }}</th><th>{{ ui_ch_what }}</th><th>{{ column_status }}</th><th class="r"></th></tr></thead>
+              <tbody id="ch-body"></tbody>
+            </table></div>
+            <div class="mcp-empty" id="ch-empty" style="display:none"><i class="fa fa-undo"></i><span id="ch-empty-t">{{ text_no_changes }}</span></div>
+            <div class="mcp-pager" id="ch-pager"></div>
+          </div>
+        </div>
+        <div class="mcp-hist{% if free %} active{% endif %}" id="hist-log">
+          <div class="mcp-hist-hd">
+            <div class="acts">
+              <a href="{{ export_url }}&format=csv" data-export="csv" class="mcp-btn"><i class="fa fa-download"></i> CSV</a>
+              <button type="button" class="mcp-btn" id="mcp-archive"><i class="fa fa-archive"></i> {{ text_archive }}</button>
+              <button type="button" class="mcp-btn danger" id="mcp-clear-log"><i class="fa fa-trash"></i> {{ ui_log_clear }}</button>
+            </div>
+          </div>
+          <div class="mcp-fbar mcp-filters" id="lf-filters">
+            <label class="f grow"><span>{{ ui_f_search }}</span><span class="mcp-search"><i class="fa fa-search"></i><input type="text" class="form-control" id="lf-q" placeholder="{{ text_filter_search }}"/></span></label>
+            <label class="f"><span>{{ column_tool }}</span><select class="form-control" id="lf-tool"><option value="">{{ text_filter_all_tools }}</option></select></label>
+            <label class="f"><span>{{ column_status }}</span><select class="form-control" id="lf-status"><option value="">{{ text_filter_all_statuses }}</option><option value="ok">{{ ui_st_ok }}</option><option value="error">{{ ui_st_error }}</option><option value="denied">{{ ui_st_denied }}</option></select></label>
+            <label class="f"><span>{{ column_client }}</span><input type="text" class="form-control" id="lf-client" placeholder="{{ ui_f_any }}"/></label>
+            <label class="f"><span>{{ ui_log_range }}</span><select id="log-range" class="form-control"><option value="">{{ ui_log_range_all }}</option><option value="session">{{ ui_log_range_session }}</option><option value="day">{{ ui_log_range_day }}</option><option value="7d">{{ ui_log_range_7d }}</option><option value="30d">{{ ui_log_range_30d }}</option></select></label>
+            <div class="f range"><span>{{ text_filter_from }} – {{ text_filter_to }}</span><span class="two"><input type="date" class="form-control" id="lf-date-from" min="2000-01-01" max="9999-12-31" aria-label="{{ text_filter_from|e('html_attr') }}"/><i>–</i><input type="date" class="form-control" id="lf-date-to" min="2000-01-01" max="9999-12-31" aria-label="{{ text_filter_to|e('html_attr') }}"/></span></div>
+            <button type="button" class="mcp-btn ghost f-reset" id="lf-reset" style="display:none"><i class="fa fa-times"></i> {{ text_filter_reset }}</button>
+          </div>
+          <div class="mcp-tcard">
+            <div class="mcp-scroll"><table class="mcp-table mcp-logt mcp-cards">
+              <thead><tr><th style="width:160px">{{ column_date }}</th><th style="width:150px">{{ column_client }}</th><th style="width:200px">{{ column_tool }}</th><th>{{ column_arguments }}</th><th style="width:90px">{{ column_status }}</th><th class="r" style="width:70px">{{ column_duration }}</th></tr></thead>
+              <tbody id="mcp-log-body"></tbody>
+            </table></div>
+            <div class="mcp-empty" id="mcp-log-empty" style="display:none">{{ text_no_log }}</div>
+            <div class="mcp-pager" id="log-pager"></div>
+          </div>
+        </div>
+        <div class="mcp-hist" id="hist-archives">
+          <div class="mcp-tcard">
+            <div class="mcp-scroll"><table class="mcp-table mcp-cards mcp-arct">
+              <thead><tr><th>{{ ui_arc_no }}</th><th>{{ ui_arc_period }}</th><th>{{ ui_arc_by }}</th><th>{{ ui_arc_date }}</th><th class="r"></th></tr></thead>
+              <tbody id="arc-body"></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
+
+      {# ================================================================ settings #}
+      <div class="mcp-pane" id="tab-prompts">
+        <section class="mcp-card">
+          <h4>{{ ui_prompts_title }}</h4>
+          <p class="mcp-sub">{{ ui_prompts_sub }}</p>
+          <div class="pr-tools">
+            <div class="mcp-search"><i class="fa fa-search"></i><input type="text" id="pr-search" class="form-control" placeholder="{{ ui_prompts_search|e('html_attr') }}"/></div>
+            <span class="sp"></span>
+            <button type="button" class="mcp-btn" id="pr-add-section"><i class="fa fa-plus"></i> {{ ui_section_add }}</button>
+            <button type="button" class="mcp-btn p" id="pr-add"><i class="fa fa-plus"></i> {{ ui_prompt_add }}</button>
+          </div>
+          <div id="pr-list"></div>
+          <details class="pr-help">
+            <summary>{{ ui_prompts_how_title }}</summary>
+            <div class="pr-how">{{ ui_prompts_how_text|raw }}</div>
+          </details>
+        </section>
+      </div>
+      <div class="mcp-pane" id="tab-general">
+        <input type="hidden" name="module_mcp_server_content_json" id="ct-json" value=""/>
+        <section class="mcp-card">
+          <h4>{{ ui_beh_title }}</h4>
+          <p class="mcp-sub">{{ ui_beh_sub }}</p>
+          <div class="set-list">
+            <div class="set-row ct-risk" data-risk="ask_first"><div class="set-t"><b>{{ ui_beh_ask_first }}</b><span>{{ ui_beh_ask_first_help }}</span><span class="ct-warn">{{ ui_beh_ask_first_off }}</span></div><div class="set-c"><label class="mcp-switch"><input type="checkbox" id="ct-ask_first" data-ct="ask_first"/><i></i></label></div></div>
+            <div class="set-row ct-risk" data-risk="bulk_preview"><div class="set-t"><b>{{ ui_beh_bulk_preview }}</b><span>{{ ui_beh_bulk_preview_help }}</span><span class="ct-warn">{{ ui_beh_bulk_preview_off }}</span></div><div class="set-c"><label class="mcp-switch"><input type="checkbox" id="ct-bulk_preview" data-ct="bulk_preview"/><i></i></label></div></div>
+            <div class="set-row ct-risk" data-risk="drafts"><div class="set-t"><b>{{ ui_beh_drafts }}</b><span>{{ ui_beh_drafts_help }}</span><span class="ct-warn">{{ ui_beh_drafts_off }}</span></div><div class="set-c"><label class="mcp-switch"><input type="checkbox" id="ct-drafts" data-ct="drafts"/><i></i></label></div></div>
+            <div class="set-row ct-risk" data-risk="url_confirm"><div class="set-t"><b>{{ ui_beh_url_confirm }}</b><span>{{ ui_beh_url_confirm_help }}</span><span class="ct-warn">{{ ui_beh_url_confirm_off }}</span></div><div class="set-c"><label class="mcp-switch"><input type="checkbox" id="ct-url_confirm" data-ct="url_confirm"/><i></i></label></div></div>
+          </div>
+        </section>
+        <section class="mcp-card">
+          <h4>{{ ui_texts_title }}</h4>
+          <div class="set-list">
+            {% if store_languages|length > 1 %}
+            <div class="set-row stack"><div class="set-t"><b>{{ ui_ai_langs }}</b><span>{{ ui_ai_langs_help }}</span></div><div class="set-c ct-langs">{% for l in store_languages %}<label><input type="checkbox" data-lang="{{ l.code|lower|e('html_attr') }}"/> {{ l.name|escape }}</label>{% endfor %}</div></div>
+            {% endif %}
+            <div class="set-row"><div class="set-t"><b>{{ ui_style_html }}</b><span>{{ ui_style_html_help }}</span></div><div class="set-c"><label class="mcp-switch"><input type="checkbox" id="ct-html" data-ct="html"/><i></i></label></div></div>
+            <div class="set-row" id="ct-css-row"><div class="set-t"><b>{{ ui_style_css }}</b><span>{{ ui_style_css_help }}</span></div><div class="set-c"><label class="mcp-switch"><input type="checkbox" id="ct-css" data-ct="css"/><i></i></label></div></div>
+            <div class="set-row"><div class="set-t"><b>{{ ui_style_emoji }}</b><span>{{ ui_style_emoji_help }}</span></div><div class="set-c"><label class="mcp-switch"><input type="checkbox" id="ct-emoji" data-ct="emoji"/><i></i></label></div></div>
+            <div class="set-row"><div class="set-t"><b>{{ ui_style_video }}</b><span>{{ ui_style_video_help }}</span></div><div class="set-c"><label class="mcp-switch"><input type="checkbox" id="ct-video" data-ct="video"/><i></i></label></div></div>
+            <div class="set-row"><div class="set-t"><b>{{ ui_style_nofollow }}</b><span>{{ ui_style_nofollow_help }}</span></div><div class="set-c"><label class="mcp-switch"><input type="checkbox" id="ct-nofollow" data-ct="nofollow"/><i></i></label></div></div>
+            <div class="set-row"><div class="set-t"><b>{{ ui_img_resize }}</b><span>{{ ui_img_resize_help }}</span></div><div class="set-c"><label class="mcp-switch"><input type="checkbox" id="ct-img_resize" data-ct="img_resize"/><i></i></label></div></div>
+            <div class="set-row"><div class="set-t"><b>{{ ui_img_delete }}</b><span>{{ ui_img_delete_help }}</span></div><div class="set-c"><label class="mcp-switch"><input type="checkbox" id="ct-img_delete" data-ct="img_delete"/><i></i></label></div></div>
+            <div class="set-row"><div class="set-t"><b>{{ ui_trash_title }}</b><span id="mcp-trash-info">{% if trash.files %}{{ ui_trash_info|format(trash.files, trash.mb, trash.oldest|date('d.m.Y')) }}{% else %}{{ ui_trash_empty }}{% endif %}</span></div><div class="set-c"><button type="button" class="mcp-btn d" id="mcp-trash-clear"{% if not trash.files %} disabled{% endif %}><i class="fa fa-trash"></i> {{ ui_trash_clear }}</button></div></div>
+          </div>
+        </section>
+        <section class="mcp-card">
+          <h4>{{ ui_more_title }}</h4>
+          <div class="set-list">
+            <div class="set-row"><div class="set-t"><b>{{ entry_rate_limit }}</b><span>{{ help_rate_limit }}</span></div><div class="set-c"><input type="number" min="0" step="10" name="module_mcp_server_rate_limit" id="input-rate" value="{{ module_mcp_server_rate_limit }}" class="form-control num"/></div></div>
+            <input type="hidden" name="module_mcp_server_mail_hourly" value="{{ module_mcp_server_mail_hourly }}"/>
+            <div class="set-row"><div class="set-t"><b>{{ ui_conn_unlimited }}</b><span>{{ ui_conn_unlimited_help }}</span></div><div class="set-c"><label class="mcp-switch"><input type="hidden" name="module_mcp_server_conn_unlimited" value="0"/><input type="checkbox" name="module_mcp_server_conn_unlimited" value="1"{% if module_mcp_server_conn_unlimited %} checked{% endif %}/><i></i></label></div></div>
+            <div class="set-row"><div class="set-t"><b>{{ entry_db_names }}</b><span>{{ help_db_names }}</span></div><div class="set-c"><label class="mcp-switch"><input type="hidden" name="module_mcp_server_db_names" value="0"/><input type="checkbox" name="module_mcp_server_db_names" value="1"{% if module_mcp_server_db_names %} checked{% endif %}/><i></i></label></div></div>
+            <div class="set-row stack"><div class="set-t"><b>{{ entry_allowed_ips }}</b><span>{{ help_allowed_ips }}</span></div><div class="set-c"><textarea name="module_mcp_server_allowed_ips" id="input-ips" class="form-control" rows="2" placeholder="203.0.113.5, 198.51.100.0/24">{{ module_mcp_server_allowed_ips|e }}</textarea></div></div>
+          </div>
+        </section>
+        <section class="mcp-card mcp-lic">
+          <i class="fa fa-key"></i><b>{{ ui_license_card }}</b><span class="mcp-pill g">{% if free %}{{ ui_license_free_badge }}{% else %}{{ ui_license_active }}{% endif %}</span>
+{% if free %}          <span class="lic-i">{{ ui_license_free_note }}</span>
+{% else %}          <span class="lic-i"><span>{{ ui_license_domains }}:</span> {{ license_info.domains }}</span>
+          {% if license_info.licensee %}<span class="lic-i"><span>{{ ui_license_licensee }}:</span> {{ license_info.licensee }}</span>{% endif %}
+          <span class="lic-i"><span>{{ ui_license_expires }}:</span> {{ license_info.expires ?: ui_license_forever }}</span>
+{% endif %}        </section>
+        <section class="mcp-card mcp-danger">
+          <h4>{{ ui_del_title }}</h4>
+          <div class="set-list">
+            <div class="set-row"><div class="set-t"><b>{{ ui_wipe_title }}</b><span>{{ ui_wipe_help }}</span></div><div class="set-c"><button type="button" class="mcp-btn d" id="mcp-wipe-open"><i class="fa fa-trash"></i> {{ ui_wipe_button }}</button></div></div>
+            <div class="set-row"><div class="set-t"><b>{{ ui_remove_title }}</b><span>{{ ui_remove_help }}</span></div><div class="set-c"><button type="button" class="mcp-btn d" id="mcp-remove-open"><i class="fa fa-trash"></i> {{ ui_remove_button }}</button></div></div>
+          </div>
+        </section>
+      </div>
+    </form>
+{% endif %}
+  </div>
+</div>
+
+{% if licensed %}
+<div class="mcp-savebar" id="mcp-savebar" role="status" aria-live="polite">
+  <span><i class="fa fa-exclamation-triangle"></i> {{ ui_unsaved }}</span>
+  <button type="button" class="mcp-btn" id="mcp-discard">{{ ui_discard }}</button>
+  <button type="submit" form="form-module" class="mcp-btn p"><i class="fa fa-save"></i> {{ ui_save }}</button>
+</div>
+
+<dialog class="mcp-dialog" id="ch-dialog" style="width:min(1000px,96vw)" aria-labelledby="ch-dialog-title">
+  <div class="hd"><h5 id="ch-dialog-title">{{ text_change_details }}</h5><button type="button" class="mcp-btn s" id="ch-dl"><i class="fa fa-download"></i> CSV</button><button type="button" class="mcp-btn s" data-close aria-label="{{ ui_close|e('html_attr') }}"><i class="fa fa-times"></i></button></div>
+  <div class="bd" id="ch-dialog-body"></div>
+</dialog>
+<dialog class="mcp-dialog" id="mcp-del-dialog" style="width:min(560px,94vw)" aria-labelledby="mcp-del-title">
+  <div class="hd"><h5 id="mcp-del-title"></h5><button type="button" class="mcp-btn s" data-close aria-label="{{ ui_close|e('html_attr') }}"><i class="fa fa-times"></i></button></div>
+  <div class="bd">
+    <p id="mcp-del-text"></p>
+    <ul class="mcp-del-list" id="mcp-del-list"></ul>
+    <label class="mcp-del-ok"><input type="checkbox" id="mcp-del-sure"/> <span id="mcp-del-sure-text"></span></label>
+    <div class="mcp-err" id="mcp-del-err" style="display:none"></div>
+  </div>
+  <div class="ft"><button type="button" class="mcp-btn" data-close>{{ ui_cancel }}</button><button type="button" class="mcp-btn d" id="mcp-del-go" disabled><i class="fa fa-trash"></i> <span></span></button></div>
+</dialog>
+<dialog class="mcp-dialog" id="mcp-dialog" aria-labelledby="mcp-dialog-title">
+  <div class="hd"><h5 id="mcp-dialog-title"></h5><button type="button" class="mcp-btn s" data-close aria-label="{{ ui_close|e('html_attr') }}"><i class="fa fa-times"></i></button></div>
+  <div class="bd">
+    <div id="mcp-dialog-list"></div>
+  </div>
+  <div class="ft"><button type="button" class="mcp-btn fd-closeall" id="mcp-dialog-close-all"><i class="fa fa-lock"></i> {{ ui_dialog_none }}</button><span class="sp"></span><button type="button" class="mcp-btn" data-close>{{ ui_cancel }}</button><button type="button" class="mcp-btn p" id="mcp-dialog-save">{{ ui_apply }}</button></div>
+</dialog>
+{% endif %}
+
+<link rel="stylesheet" type="text/css" href="{{ asset_css_url }}"/>
+
+<script type="text/javascript"><!--
+$(document).on('click', '[data-mcp-lang]', function (e) {
+  e.preventDefault();
+  document.cookie = 'mcp_lang=' + $(this).data('mcp-lang') + '; path=/; max-age=31536000; SameSite=Lax';
+  location.reload();
+});
+$('#mcp-license-save').on('click', function () {
+  var $b = $(this).prop('disabled', true), $e = $('#mcp-license-error').text('');
+  $.ajax({ url: '{{ license_url|raw }}'.replace(/&amp;/g, '&'), type: 'post', data: { key: $('#mcp-license-key').val() }, dataType: 'json',
+    success: function (j) { if (j.success) { location.reload(); } else { $e.text(j.error || 'Error').show(); $b.prop('disabled', false); } },
+    error: function () { $e.text('Error').show(); $b.prop('disabled', false); } });
+});
+//--></script>
+{% if licensed %}
+<script type="text/javascript">var __M = [
+'{{ columns_url|raw }}',
+{{ access_json|raw }},
+{{ presets_json|raw }},
+{{ stats_json|raw }},
+{{ acl_custom_json|raw }},
+'{{ text_level_none|e('js') }}',
+'{{ text_level_read|e('js') }}',
+'{{ text_level_write|e('js') }}',
+'{{ text_level_full|e('js') }}',
+'{{ ui_level_mixed|e('js') }}',
+'{{ text_fields|e('js') }}',
+'{{ ui_db_tables|e('js') }}',
+'{{ text_tables|e('js') }}',
+'{{ text_mixed|e('js') }}',
+'{{ ui_level_custom|e('js') }}',
+'{{ text_read_col|e('js') }}',
+'{{ text_edit_col|e('js') }}',
+'{{ text_badge_personal|e('js') }}',
+'{{ text_badge_money|e('js') }}',
+'{{ text_badge_tech|e('js') }}',
+'{{ text_badge_secret|e('js') }}',
+'{{ text_no_matches|e('js') }}',
+'{{ text_hidden_n|e('js') }}',
+'{{ text_edit_n|e('js') }}',
+'{{ column_rows|e('js') }}',
+'{{ text_badge_masked|e('js') }}',
+'{{ text_badge_no_edit|e('js') }}',
+'{{ text_fields_of|e('js') }}',
+'{{ ui_tb_table|e('js') }}',
+'{{ ui_tb_rows|e('js') }}',
+'{{ ui_tb_level|e('js') }}',
+'{{ ui_subs_n|e('js') }}',
+'{{ ui_found_in_fields|e('js') }}',
+'{{ ui_all_none|e('js') }}',
+'{{ ui_del_col|e('js') }}',
+'{{ ui_all_kinds|e('js') }}',
+'{{ ui_access_lv_read|e('js') }}',
+'{{ ui_access_lv_write|e('js') }}',
+'{{ ui_access_lv_all|e('js') }}',
+'{{ ui_access_lv_custom|e('js') }}',
+'{{ ui_access_lv_none|e('js') }}',
+'{{ ui_kpi_calls|e('js') }}',
+'{{ ui_kpi_calls_sub|e('js') }}',
+'{{ ui_kpi_connections|e('js') }}',
+'{{ ui_kpi_connections_sub|e('js') }}',
+'{{ ui_kpi_changes|e('js') }}',
+'{{ ui_kpi_changes_sub|e('js') }}',
+'{{ ui_kpi_rolled|e('js') }}',
+'{{ ui_kpi_rolled_sub|e('js') }}',
+'{{ ui_last_call|e('js') }}',
+'{{ ui_last_ai|e('js') }}',
+'{{ ui_never|e('js') }}',
+'{{ ui_top_tools|e('js') }}',
+'{{ ui_no_activity|e('js') }}',
+'{{ ui_kpi_failed_logins|e('js') }}',
+'{{ text_no_changes|e('js') }}',
+'{{ ui_did_bulk_update_products|e('js') }}',
+'{{ ui_did_cancel_mail|e('js') }}',
+'{{ ui_did_content_guidelines|e('js') }}',
+'{{ ui_did_copy_product|e('js') }}',
+'{{ ui_did_create_order|e('js') }}',
+'{{ ui_did_create_upload_link|e('js') }}',
+'{{ ui_did_db_schema|e('js') }}',
+'{{ ui_did_delete_image|e('js') }}',
+'{{ ui_did_edit_image|e('js') }}',
+'{{ ui_did_export_data|e('js') }}',
+'{{ ui_did_get_content|e('js') }}',
+'{{ ui_did_get_customer|e('js') }}',
+'{{ ui_did_get_order|e('js') }}',
+'{{ ui_did_get_product|e('js') }}',
+'{{ ui_did_get_settings|e('js') }}',
+'{{ ui_did_import_data|e('js') }}',
+'{{ ui_did_import_image|e('js') }}',
+'{{ ui_did_list_categories|e('js') }}',
+'{{ ui_did_list_changes|e('js') }}',
+'{{ ui_did_list_customers|e('js') }}',
+'{{ ui_did_list_images|e('js') }}',
+'{{ ui_did_list_mails|e('js') }}',
+'{{ ui_did_list_orders|e('js') }}',
+'{{ ui_did_list_products|e('js') }}',
+'{{ ui_did_list_prompts|e('js') }}',
+'{{ ui_did_list_vouchers|e('js') }}',
+'{{ ui_did_low_stock|e('js') }}',
+'{{ ui_did_manage_customer|e('js') }}',
+'{{ ui_did_manage_records|e('js') }}',
+'{{ ui_did_manage_review|e('js') }}',
+'{{ ui_did_prepare_mail|e('js') }}',
+'{{ ui_did_run_prompt|e('js') }}',
+'{{ ui_did_sales_report|e('js') }}',
+'{{ ui_did_save_content|e('js') }}',
+'{{ ui_did_send_mail|e('js') }}',
+'{{ ui_did_set_images|e('js') }}',
+'{{ ui_did_sql_query|e('js') }}',
+'{{ ui_did_store_info|e('js') }}',
+'{{ ui_did_undo_changes|e('js') }}',
+'{{ ui_did_update_order_status|e('js') }}',
+'{{ ui_did_update_product|e('js') }}',
+'{{ ui_did_update_settings|e('js') }}',
+'{{ ui_copied|e('js') }}',
+{{ token_set ? 'true' : 'false' }},
+'{{ text_token_removed_on_save|e('js') }}',
+{{ pretty_urls ? 'true' : 'false' }},
+'{{ check_url|raw }}',
+'{{ ui_wipe_title|e('js') }}',
+'{{ ui_wipe_text|e('js') }}',
+'{{ ui_wipe_sure|e('js') }}',
+'{{ ui_wipe_button|e('js') }}',
+'{{ wipe_url|raw }}',
+'{{ ui_remove_title|e('js') }}',
+'{{ ui_remove_text|e('js') }}',
+'{{ ui_remove_sure|e('js') }}',
+'{{ ui_remove_button|e('js') }}',
+'{{ remove_url|raw }}',
+'{{ ui_del_rows|e('js') }}',
+'{{ ui_del_trash|e('js') }}',
+'{{ ui_del_settings|e('js') }}',
+'{{ ui_del_files|e('js') }}',
+'{{ ui_del_kept|e('js') }}',
+'{{ wipe_preview_url|raw }}',
+'{{ ui_trash_confirm|e('js') }}',
+'{{ clear_trash_url|raw }}',
+'{{ error_permission|e('js') }}',
+'{{ error_permission|e('js') }}',
+'{{ changes_url|raw }}',
+'{{ change_details_url|raw }}',
+'{{ rollback_url|raw }}',
+'{{ cancel_change_url|raw }}',
+'{{ rollback_all_url|raw }}',
+'{{ text_ch_pending|e('js') }}',
+'{{ text_ch_rolled_back|e('js') }}',
+'{{ text_ch_conflict|e('js') }}',
+'{{ text_ch_cancelled|e('js') }}',
+'{{ text_ch_applied|e('js') }}',
+'{{ text_rollback|e('js') }}',
+'{{ text_cancel_delete|e('js') }}',
+'{{ text_change_details|e('js') }}',
+'{{ text_confirm_rollback|e('js') }}',
+'{{ text_confirm_force|e('js') }}',
+'{{ ui_rb_blocked|e('js') }}',
+'{{ text_before|e('js') }}',
+'{{ text_after|e('js') }}',
+'{{ ui_ch_rows_n|e('js') }}',
+'{{ ui_ch_by_admin|e('js') }}',
+'{{ ui_ch_pending_at|e('js') }}',
+'{{ ui_ch_conflict_n|e('js') }}',
+'{{ ui_ch_partial|e('js') }}',
+'{{ ui_ch_rb_all|e('js') }}',
+'{{ ui_ch_rb_all_q|e('js') }}',
+'{{ ui_ch_none_open|e('js') }}',
+'{{ ui_ch_none_match|e('js') }}',
+'{{ text_no_changes|e('js') }}',
+'{{ column_date|e('js') }}',
+'{{ ui_ch_connection|e('js') }}',
+'{{ ui_ch_what|e('js') }}',
+'{{ column_status|e('js') }}',
+'{{ ui_ch_no|e('js') }}',
+'{{ ui_ch_details_no|e('js') }}',
+'{{ ui_ch_csv_table|e('js') }}',
+'{{ ui_ch_csv_action|e('js') }}',
+'{{ ui_ch_csv_key|e('js') }}',
+'{{ ui_ch_csv_field|e('js') }}',
+'{{ ui_ch_sel_n|e('js') }}',
+'{{ ui_ch_rb_sel_q|e('js') }}',
+'{{ ui_ch_rb_sel_done|e('js') }}',
+'{{ ui_tool_update_product|e('js') }}',
+'{{ ui_tool_bulk_update_products|e('js') }}',
+'{{ ui_tool_copy_product|e('js') }}',
+'{{ ui_tool_set_product_special|e('js') }}',
+'{{ ui_tool_remove_product_special|e('js') }}',
+'{{ ui_tool_update_order_status|e('js') }}',
+'{{ ui_tool_create_order|e('js') }}',
+'{{ ui_tool_save_content|e('js') }}',
+'{{ ui_tool_set_images|e('js') }}',
+'{{ ui_tool_import_image|e('js') }}',
+'{{ ui_tool_delete_image|e('js') }}',
+'{{ ui_tool_manage_records|e('js') }}',
+'{{ ui_tool_manage_customer|e('js') }}',
+'{{ ui_tool_import_data|e('js') }}',
+'{{ ui_tool_manage_review|e('js') }}',
+'{{ ui_tool_update_settings|e('js') }}',
+'{{ ui_tool_upload|e('js') }}',
+'{{ ui_tool_undo_changes|e('js') }}',
+'{{ ui_tool_cancel_pending_change|e('js') }}',
+'{{ ui_tool_prepare_mail|e('js') }}',
+'{{ ui_tool_send_mail|e('js') }}',
+'{{ ui_tool_cancel_mail|e('js') }}',
+'{{ ui_tool_run_prompt|e('js') }}',
+'{{ ui_tbl_images|e('js') }}',
+'{{ ui_pg_shown|e('js') }}',
+'{{ ui_pg_per|e('js') }}',
+'{{ ui_pg_prev|e('js') }}',
+'{{ ui_pg_next|e('js') }}',
+'{{ ui_load_failed|e('js') }}',
+'{{ ui_act_insert|e('js') }}',
+'{{ ui_act_update|e('js') }}',
+'{{ ui_act_delete|e('js') }}',
+'{{ ui_ch_shown|e('js') }}',
+'{{ ui_ch_no_details|e('js') }}',
+'{{ ui_st_ok|e('js') }}',
+'{{ ui_st_error|e('js') }}',
+'{{ ui_st_denied|e('js') }}',
+'{{ ui_log_admin|e('js') }}',
+'{{ ui_log_rollback|e('js') }}',
+'{{ ui_log_cancel_delete|e('js') }}',
+'{{ ui_log_auth|e('js') }}',
+'{{ ui_log_oauth_login|e('js') }}',
+'{{ ui_log_oauth_login_failed|e('js') }}',
+'{{ logs_url|raw }}',
+'{{ ui_log_no_match|e('js') }}',
+'{{ text_no_log|e('js') }}',
+'{{ ui_load_failed|e('js') }}',
+{{ archives_json|raw }},
+'{{ export_url|raw }}',
+'{{ ui_arc_auto|e('js') }}',
+'{{ ui_arc_download|e('js') }}',
+'{{ text_archive_prompt|e('js') }}',
+'{{ archive_url|raw }}',
+'{{ ui_log_clear_confirm|e('js') }}',
+'{{ clear_log_url|raw }}',
+"{{ ui_conn_rename_ph|e('js') }}",
+'{{ rename_url|raw }}',
+'{{ revoke_url|raw }}',
+'{{ text_revoke_all|e('js') }}',
+'{{ text_revoke|e('js') }}',
+{{ prompts_json|raw }},
+{{ content_json|raw }},
+'{{ ui_prompt_edit|e('js') }}',
+'{{ ui_prompt_copy_tip|e('js') }}',
+'{{ ui_copied|e('js') }}',
+'{{ ui_save|e('js') }}',
+'{{ ui_cancel|e('js') }}',
+'{{ ui_prompt_reset|e('js') }}',
+'{{ ui_prompt_delete|e('js') }}',
+'{{ ui_prompt_changed|e('js') }}',
+'{{ ui_prompt_own|e('js') }}',
+'{{ ui_prompt_field_title|e('js') }}',
+'{{ ui_prompt_field_section|e('js') }}',
+'{{ ui_prompt_field_desc|e('js') }}',
+'{{ ui_prompt_field_body|e('js') }}',
+'{{ ui_prompt_reset_q|e('js') }}',
+'{{ ui_prompt_delete_q|e('js') }}',
+'{{ text_no_matches|e('js') }}',
+'{{ ui_prompt_on|e('js') }}',
+'{{ ui_section_name|e('js') }}',
+'{{ ui_section_delete|e('js') }}',
+'{{ ui_section_empty|e('js') }}',
+'{{ ui_prompt_title_hint|e('js') }}',
+'{{ ui_prompt_desc_hint|e('js') }}',
+'{{ ui_prompt_body_hint|e('js') }}',
+'{{ prompts_url|raw }}'
+];</script>
+<script type="text/javascript" src="{{ asset_js_url }}"></script>
+{% endif %}
+
+{{ footer }}
